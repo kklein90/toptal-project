@@ -1,0 +1,31 @@
+---
+- name: base
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Install Base Utility Packages
+      yum:
+        name:
+          - python3
+          - python3-pip
+          - sshpass
+          - tcl
+          - expect
+          - mailx
+        state: installed
+
+    - name: Install AWSCLIv2
+      ansible.builtin.shell:
+        cmd: pip3 install awscliv2
+
+    - name: Setup for tailscale
+      ansible.builtin.shell:
+        cmd: echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.conf && echo 'net.ipv6.conf.all.forwarding = 1' | tee -a /etc/sysctl.conf && sysctl -p /etc/sysctl.conf
+
+    - name: Download & install tailscale
+      ansible.builtin.shell:
+        cmd: "curl -fsSL https://tailscale.com/install.sh | sh"
+
+    - name: Launch tailscale with route advertisements
+      ansible.builtin.shell:
+        cmd: tailscale up --advertise-routes=10.1.0.0/16,10.2.0.0/16

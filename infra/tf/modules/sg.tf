@@ -1,0 +1,99 @@
+resource "aws_security_group" "rds_sec_group" {
+  name        = "RDS-Postgresql-common-security-group"
+  description = "Standard SecGroup for MH RDS instances"
+  vpc_id      = aws_vpc.vpc_01.id
+
+  ingress {
+    description = "Postgresql access from App subnets"
+    from_port   = "5432"
+    to_port     = "5432"
+    protocol    = "tcp"
+    cidr_blocks = ["10.1.0.0/16"]
+  }
+
+  egress {
+    description = "Outbound access for updates"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "web_server_sg" {
+  name        = "Web Sec Group"
+  description = "sg for web"
+  vpc_id      = aws_vpc.vpc_01.id
+
+  ingress {
+    description = "self"
+    self        = true
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+  }
+
+  ingress {
+    description = "internal subnet ssh access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["47.194.69.245/32"]
+  }
+
+  ingress {
+    description = "https"
+    from_port   = "443"
+    to_port     = "443"
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+
+  }
+}
+
+resource "aws_security_group" "api_server_sg" {
+  name        = "API Sec Group"
+  description = "sg for api"
+  vpc_id      = aws_vpc.vpc_01.id
+
+  ingress {
+    description = "self"
+    self        = true
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+  }
+
+  ingress {
+    description = "internal subnet ssh access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["47.194.69.245/32"]
+  }
+
+  ingress {
+    description = "https"
+    from_port   = "443"
+    to_port     = "443"
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+
+  }
+}
