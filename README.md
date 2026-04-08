@@ -40,3 +40,7 @@ You can use another git provider to leverage hooks, CI/CD, or other features not
 - ALB + target groups
 - DB
   - backup
+
+  web - tcp:8081
+  api - tcp:8082
+  
