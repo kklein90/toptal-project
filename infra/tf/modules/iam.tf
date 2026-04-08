@@ -48,6 +48,20 @@ resource "aws_iam_role_policy_attachment" "server_server_pol_attach" {
 
 data "aws_iam_policy_document" "server_server_pol_doc" {
   statement {
+    sid    = "Cloudwatch"
+    effect = "Allow"
+
+    actions = [
+      "cloudwatch:*",
+      "logs:*"
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+
+  statement {
     sid    = "Secrets"
     effect = "Allow"
 

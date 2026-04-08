@@ -9,3 +9,9 @@ services:
       - .env
     ports:
       - "8081:8081"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: /toptal/web
+        awslogs-stream: web
