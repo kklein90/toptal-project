@@ -8,16 +8,39 @@ on:
     #         - main
 
 jobs:
-    deploy:
-      name: Deploy
+    build:
+      name: Build Containers
       runs-on: [ubuntu-slim]
       steps:
-        - name: Deploy to prod  
-          id: deploy-to-prod
-          run: |
-            echo ${{ secrets.KEY_GITHUB }} >> ~/.ssh/key
-            chmod 600 ~/.ssh/key
-            echo ~/.ssh/key
-            ssh -i ~/.ssh/key admin@18.215.254.127 'cd /home/admin/toptal-project/node-3tier-app2/web && git pull && docker compose restart '
+        - name: Checkout Repository
+          uses: actions/checkout@v2
+          with:
+            lfs: true
         
+        - name: Configure AWS Credentials
+          uses: aws-actions/configure-aws-credentials@v2
+          with:
+            role-to-assume: arn:aws:iam::871697377499:role/githubactions
+            role-session-name: foundation
+            role-duration-seconds: 900
+            aws-region: us-east-1
+            mask-aws-account-id: false
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKER_USER }}
+            password: ${{ secrets.DOCKER_PASS }}
+
+        - name: Build and push
+          uses: docker/build-push-action@v3
+          with:
+            context: .
+            push: true
+            file: toptal-project/node-3tier-app2/web/Dockerfile
+            tags: kklein90/toptal-web:latest
+            
+
+        
+          
 
