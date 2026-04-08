@@ -1,46 +1,40 @@
 name: Deploy to prod
 
-on: 
-    workflow_dispatch:
+on:
+  workflow_dispatch:
 
-    # push:
-    #     branches:
-    #         - main
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
-    build:
-      name: Build Containers
-      runs-on: [ubuntu-latest]
-      steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v2
-          with:
-            lfs: true
-        
-        # - name: Configure AWS Credentials
-        #   uses: aws-actions/configure-aws-credentials@v2
-        #   with:
-        #     role-to-assume: arn:aws:iam::871697377499:role/githubactions
-        #     role-session-name: foundation
-        #     role-duration-seconds: 900
-        #     aws-region: us-east-1
-        #     mask-aws-account-id: false
+  build:
+    name: Build Containers
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
 
-        - name: Login to Docker Hub
-          uses: docker/login-action@v3
-          with:
-            username: ${{ secrets.DOCKER_USER }}
-            password: ${{ secrets.DOCKER_PASS }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
 
-        - name: Build and push
-          uses: docker/build-push-action@v3
-          with:
-            context: .
-            push: true
-            file: toptal-project/node-3tier-app2/web/Dockerfile
-            tags: kklein90/toptal-web:latest
-            
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: node-3tier-app2/web
+          file: node-3tier-app2/web/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USER }}/toptal-web:latest
 
-        
-          
-
+      - name: Build and push api image
+        uses: docker/build-push-action@v6
+        with:
+          context: node-3tier-app2/api
+          file: node-3tier-app2/api/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USER }}/toptal-api:latest
