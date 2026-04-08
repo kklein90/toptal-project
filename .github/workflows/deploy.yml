@@ -10,6 +10,7 @@ on:
 jobs:
     deploy:
       name: Deploy
+      runs-on: [linux, x64]
       steps:
         - name: Deploy to prod  
           id: deploy-to-prod
