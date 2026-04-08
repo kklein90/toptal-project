@@ -18,6 +18,6 @@ jobs:
             echo ${{ secrets.KEY_GITHUB }} >> /tmp/key
             chmod 600 ~/.ssh/key
             ls -lah ~/.ssh/key
-            ssh -i ~/.ssh/key admin@18.215.254.127 cd /home/admin/toptal-project/node-3tier-app2/web && git pull && docker compose restart 
+            ssh -i ~/.ssh/key admin@18.215.254.127 'cd /home/admin/toptal-project/node-3tier-app2/web && git pull && docker compose restart '
         
 
