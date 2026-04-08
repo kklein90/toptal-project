@@ -15,3 +15,4 @@ services:
         awslogs-region: us-east-1
         awslogs-group: /toptal/web
         awslogs-stream: web
+        awslogs-create-group: true

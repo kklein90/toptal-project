@@ -1,0 +1,21 @@
+name: Deploy to prod
+
+on: 
+    workflow_dispatch:
+
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+      name: Deploy
+      steps:
+        - name: Deploy to prod  
+          id: deploy-to-prod
+          run: |
+            echo ${{ secrets.KEY_GITHUB }} >> /tmp/key
+            chmod 600 /tmp/key
+            ssh -i /tmp/key admin@18.215.254.127 cd /home/admin/toptal-project/node-3tier-app2/web && git pull && docker compose restart 
+        
+
