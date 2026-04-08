@@ -15,4 +15,4 @@ RUN cd /app && npm install
 
 EXPOSE 8082
 
-CMD ["npm", "start"]
+ENTRYPOINT [ "/app/entry-point.sh" ]
