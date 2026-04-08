@@ -16,8 +16,8 @@ jobs:
           id: deploy-to-prod
           run: |
             echo ${{ secrets.KEY_GITHUB }} >> /tmp/key
-            chmod 600 /tmp/key
-            ls -lah /tmp/key
-            ssh -i /tmp/key admin@18.215.254.127 cd /home/admin/toptal-project/node-3tier-app2/web && git pull && docker compose restart 
+            chmod 600 ~/.ssh/key
+            ls -lah ~/.ssh//key
+            ssh -i ~/.ssh/key admin@18.215.254.127 cd /home/admin/toptal-project/node-3tier-app2/web && git pull && docker compose restart 
         
 
