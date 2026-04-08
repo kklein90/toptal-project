@@ -1,10 +1,3 @@
-#  PORT: the listening PORT
-# - DB: Name of the database to connect
-# - DBUSER: Database user
-# - DBPASS: DB user password,
-# - DBHOST: Database hostname,
-# - DBPORT: Database server listening port
-
 FROM node:25
 
 ENV PORT=8082 \
