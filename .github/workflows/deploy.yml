@@ -138,6 +138,10 @@ jobs:
             runtimePlatform: .runtimePlatform
           } | with_entries(select(.value != null))' api-task-def-full.json > api-task-def.json
 
+      - name: Validate API task definition port is 80
+        run: |
+          jq -e '.containerDefinitions[] | select(.name=="api") | .portMappings[] | select(.containerPort==80 and .hostPort==80)' api-task-def.json >/dev/null
+
       - name: Render api task definition with new image
         id: render-api
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -172,6 +176,10 @@ jobs:
             memory: .memory,
             runtimePlatform: .runtimePlatform
           } | with_entries(select(.value != null))' web-task-def-full.json > web-task-def.json
+
+      - name: Validate web task definition port is 80
+        run: |
+          jq -e '.containerDefinitions[] | select(.name=="web") | .portMappings[] | select(.containerPort==80 and .hostPort==80)' web-task-def.json >/dev/null
 
       - name: Render web task definition with new image
         id: render-web

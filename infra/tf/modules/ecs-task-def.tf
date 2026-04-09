@@ -19,15 +19,15 @@ resource "aws_ecs_task_definition" "web" {
       essential = true
       portMappings = [
         {
-          containerPort = 8081
-          hostPort      = 8081
+          containerPort = 80
+          hostPort      = 80
           protocol      = "tcp"
         }
       ]
       environment = [
         {
           name  = "PORT"
-          value = "8081"
+          value = "80"
         },
         {
           name  = "API_HOST"
@@ -67,15 +67,15 @@ resource "aws_ecs_task_definition" "api" {
       essential = true
       portMappings = [
         {
-          containerPort = 8082
-          hostPort      = 8082
+          containerPort = 80
+          hostPort      = 80
           protocol      = "tcp"
         }
       ]
       environment = [
         {
           name  = "PORT"
-          value = "8082"
+          value = "80"
         },
         {
           name  = "DBPORT"

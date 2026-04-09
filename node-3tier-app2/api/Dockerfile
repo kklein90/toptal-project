@@ -1,6 +1,6 @@
 FROM node:25
 
-ENV PORT=8082 \
+ENV PORT=80 \
     DB= \
     DBUSER= \
     DBPASS= \
@@ -13,6 +13,6 @@ COPY . /app/
 
 RUN cd /app && npm install
 
-EXPOSE 8082
+EXPOSE 80
 
 ENTRYPOINT [ "/app/entry-point.sh" ]

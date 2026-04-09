@@ -9,10 +9,6 @@ resource "aws_ssm_parameter" "api_env_db" {
     management = "terraform"
     service    = "api"
   }
-
-  lifecycle {
-    ignore_changes = [value]
-  }
 }
 
 resource "aws_ssm_parameter" "api_env_dbuser" {
@@ -25,10 +21,6 @@ resource "aws_ssm_parameter" "api_env_dbuser" {
     owner      = "engineering"
     management = "terraform"
     service    = "api"
-  }
-
-  lifecycle {
-    ignore_changes = [value]
   }
 }
 
@@ -43,10 +35,6 @@ resource "aws_ssm_parameter" "api_env_dbpass" {
     management = "terraform"
     service    = "api"
   }
-
-  lifecycle {
-    ignore_changes = [value]
-  }
 }
 
 resource "aws_ssm_parameter" "api_env_dbhost" {
@@ -59,10 +47,6 @@ resource "aws_ssm_parameter" "api_env_dbhost" {
     owner      = "engineering"
     management = "terraform"
     service    = "api"
-  }
-
-  lifecycle {
-    ignore_changes = [value]
   }
 }
 

@@ -51,8 +51,8 @@ resource "aws_security_group" "web_server_sg" {
 
   ingress {
     description     = "ALB to web container"
-    from_port       = 8081
-    to_port         = 8081
+    from_port       = 80
+    to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.toptal_alb_sg.id]
   }
@@ -98,16 +98,16 @@ resource "aws_security_group" "api_server_sg" {
 
   ingress {
     description     = "ALB to api container"
-    from_port       = 8082
-    to_port         = 8082
+    from_port       = 80
+    to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.toptal_alb_sg.id]
   }
 
   ingress {
     description     = "Web to API over Cloud Map"
-    from_port       = 8082
-    to_port         = 8082
+    from_port       = 80
+    to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.web_server_sg.id]
   }

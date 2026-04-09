@@ -22,7 +22,15 @@ resource "aws_lb_target_group" "web" {
   vpc_id      = aws_vpc.vpc_01.id
 
   health_check {
-    enabled = true
+    enabled             = true
+    path                = "/"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    matcher             = "200-499"
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    interval            = 30
+    timeout             = 5
   }
 }
 
@@ -34,7 +42,15 @@ resource "aws_lb_target_group" "api" {
   vpc_id      = aws_vpc.vpc_01.id
 
   health_check {
-    enabled = true
+    enabled             = true
+    path                = "/api/status"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    matcher             = "200"
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    interval            = 30
+    timeout             = 5
   }
 }
 

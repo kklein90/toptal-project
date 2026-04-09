@@ -19,7 +19,7 @@ resource "aws_ecs_service" "web" {
   load_balancer {
     target_group_arn = aws_lb_target_group.web.arn
     container_name   = "web"
-    container_port   = 8081
+    container_port   = 80
   }
 
   service_registries {
@@ -61,7 +61,7 @@ resource "aws_ecs_service" "api" {
   load_balancer {
     target_group_arn = aws_lb_target_group.api.arn
     container_name   = "api"
-    container_port   = 8082
+    container_port   = 80
   }
 
   service_registries {
