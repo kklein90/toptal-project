@@ -27,7 +27,8 @@ resource "aws_ecs_service" "web" {
   }
 
   depends_on = [
-    aws_lb_listener_rule.web_host_rule
+    aws_lb_listener_rule.web_host_rule,
+    aws_ecs_service.api
   ]
 
   tags = {

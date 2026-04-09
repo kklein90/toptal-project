@@ -4,7 +4,7 @@ resource "cloudflare_record" "api" {
   type    = "CNAME"
   value   = aws_lb.toptal_alb.dns_name
   ttl     = 1
-  proxied = false
+  proxied = true
 }
 
 resource "cloudflare_record" "web" {
@@ -13,5 +13,5 @@ resource "cloudflare_record" "web" {
   type    = "CNAME"
   value   = aws_lb.toptal_alb.dns_name
   ttl     = 1
-  proxied = false
+  proxied = true
 }

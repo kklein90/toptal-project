@@ -27,8 +27,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID || secrets.AWS_SECRET }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY || secrets.AWS_SECRET_ACCESS_TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Node.js
@@ -119,41 +119,6 @@ jobs:
             ${{ secrets.DOCKER_USER }}/toptal-api:latest
             ${{ secrets.DOCKER_USER }}/toptal-api:${{ github.sha }}
 
-      - name: Generate web task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition "${WEB_TASK_FAMILY}" \
-            --query taskDefinition > web-task-def-full.json
-          jq '{
-            family: .family,
-            taskRoleArn: .taskRoleArn,
-            executionRoleArn: .executionRoleArn,
-            networkMode: .networkMode,
-            containerDefinitions: .containerDefinitions,
-            volumes: .volumes,
-            placementConstraints: .placementConstraints,
-            requiresCompatibilities: .requiresCompatibilities,
-            cpu: .cpu,
-            memory: .memory,
-            runtimePlatform: .runtimePlatform
-          } | with_entries(select(.value != null))' web-task-def-full.json > web-task-def.json
-
-      - name: Render web task definition with new image
-        id: render-web
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: web-task-def.json
-          container-name: web
-          image: ${{ secrets.DOCKER_USER }}/toptal-web:${{ github.sha }}
-
-      - name: Deploy web service
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ${{ steps.render-web.outputs.task-definition }}
-          service: ${{ env.ECS_WEB_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
-
       - name: Generate api task definition
         run: |
           aws ecs describe-task-definition \
@@ -186,5 +151,40 @@ jobs:
         with:
           task-definition: ${{ steps.render-api.outputs.task-definition }}
           service: ${{ env.ECS_API_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Generate web task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "${WEB_TASK_FAMILY}" \
+            --query taskDefinition > web-task-def-full.json
+          jq '{
+            family: .family,
+            taskRoleArn: .taskRoleArn,
+            executionRoleArn: .executionRoleArn,
+            networkMode: .networkMode,
+            containerDefinitions: .containerDefinitions,
+            volumes: .volumes,
+            placementConstraints: .placementConstraints,
+            requiresCompatibilities: .requiresCompatibilities,
+            cpu: .cpu,
+            memory: .memory,
+            runtimePlatform: .runtimePlatform
+          } | with_entries(select(.value != null))' web-task-def-full.json > web-task-def.json
+
+      - name: Render web task definition with new image
+        id: render-web
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: web-task-def.json
+          container-name: web
+          image: ${{ secrets.DOCKER_USER }}/toptal-web:${{ github.sha }}
+
+      - name: Deploy web service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-web.outputs.task-definition }}
+          service: ${{ env.ECS_WEB_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
