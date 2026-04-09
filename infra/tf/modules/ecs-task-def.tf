@@ -31,7 +31,7 @@ resource "aws_ecs_task_definition" "web" {
         },
         {
           name  = "API_HOST"
-          value = "api.toptal.internal"
+          value = "http://api.toptal.internal"
         }
       ]
       logConfiguration = {

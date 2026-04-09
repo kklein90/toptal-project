@@ -23,10 +23,10 @@ resource "aws_lb_target_group" "web" {
 
   health_check {
     enabled             = true
-    path                = "/"
+    path                = "/healthz"
     port                = "traffic-port"
     protocol            = "HTTP"
-    matcher             = "200-499"
+    matcher             = "200"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     interval            = 30

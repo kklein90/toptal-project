@@ -5,6 +5,10 @@ var request = require('request');
 
 var api_url = process.env.API_HOST + '/api/status';
 
+router.get('/healthz', function(req, res) {
+    res.status(200).send('ok');
+});
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
     request({
