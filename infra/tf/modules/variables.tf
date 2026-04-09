@@ -21,3 +21,17 @@ variable "key-pair" {
   default     = "kk-040726"
 }
 
+variable "dockerhub-username" {
+  description = "Docker Hub username used to pull web/api images"
+  default     = "kklein90"
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone ID used for public DNS records"
+  type        = string
+}
+
+variable "public_domain" {
+  description = "Public domain name managed in Cloudflare"
+  type        = string
+}

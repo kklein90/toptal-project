@@ -11,11 +11,87 @@ jobs:
   build:
     name: Build Containers
     runs-on: [ubuntu-latest]
+    env:
+      AWS_REGION: us-east-1
+      ECS_CLUSTER: toptal-ecs-cluster
+      ECS_WEB_SERVICE: web
+      ECS_API_SERVICE: api
+      WEB_TASK_FAMILY: web
+      API_TASK_FAMILY: api
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           lfs: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID || secrets.AWS_SECRET }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY || secrets.AWS_SECRET_ACCESS_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install API dependencies
+        run: npm install --prefix node-3tier-app2/api --no-audit --no-fund
+
+      - name: Install web dependencies
+        run: npm ci --prefix node-3tier-app2/web --no-audit --no-fund
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check node-3tier-app2/api/app.js
+          node --check node-3tier-app2/web/app.js
+          node --check node-3tier-app2/web/routes/index.js
+
+      - name: API smoke test (startup + 404 response)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PORT=38082 \
+          DBUSER=ci_user \
+          DB=ci_db \
+          DBPASS=ci_pass \
+          DBHOST=127.0.0.1 \
+          DBPORT=5432 \
+          node node-3tier-app2/api/bin/www > /tmp/api.log 2>&1 &
+          API_PID=$!
+
+          cleanup() {
+            kill "$API_PID" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          sleep 4
+          HTTP_CODE="$(curl -s -o /tmp/api_resp.out -w "%{http_code}" http://127.0.0.1:38082/not-found)"
+          test "$HTTP_CODE" = "404"
+
+      - name: Web smoke test (renders root with mocked API)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          node -e "const http=require('http');http.createServer((req,res)=>{if(req.url==='/api/status'){res.setHeader('Content-Type','application/json');res.end('[{\"request_uuid\":\"ci\",\"time\":\"2026-01-01T00:00:00Z\"}]');}else{res.statusCode=404;res.end('not found');}}).listen(38083);" > /tmp/mock-api.log 2>&1 &
+          MOCK_PID=$!
+
+          PORT=38081 \
+          API_HOST=http://127.0.0.1:38083 \
+          node node-3tier-app2/web/bin/www > /tmp/web.log 2>&1 &
+          WEB_PID=$!
+
+          cleanup() {
+            kill "$WEB_PID" >/dev/null 2>&1 || true
+            kill "$MOCK_PID" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          sleep 4
+          curl -fsS http://127.0.0.1:38081/ | grep -q "3tier App"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -29,7 +105,9 @@ jobs:
           context: node-3tier-app2/web
           file: node-3tier-app2/web/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USER }}/toptal-web:latest
+          tags: |
+            ${{ secrets.DOCKER_USER }}/toptal-web:latest
+            ${{ secrets.DOCKER_USER }}/toptal-web:${{ github.sha }}
 
       - name: Build and push api image
         uses: docker/build-push-action@v6
@@ -37,4 +115,76 @@ jobs:
           context: node-3tier-app2/api
           file: node-3tier-app2/api/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USER }}/toptal-api:latest
+          tags: |
+            ${{ secrets.DOCKER_USER }}/toptal-api:latest
+            ${{ secrets.DOCKER_USER }}/toptal-api:${{ github.sha }}
+
+      - name: Generate web task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "${WEB_TASK_FAMILY}" \
+            --query taskDefinition > web-task-def-full.json
+          jq '{
+            family: .family,
+            taskRoleArn: .taskRoleArn,
+            executionRoleArn: .executionRoleArn,
+            networkMode: .networkMode,
+            containerDefinitions: .containerDefinitions,
+            volumes: .volumes,
+            placementConstraints: .placementConstraints,
+            requiresCompatibilities: .requiresCompatibilities,
+            cpu: .cpu,
+            memory: .memory,
+            runtimePlatform: .runtimePlatform
+          } | with_entries(select(.value != null))' web-task-def-full.json > web-task-def.json
+
+      - name: Render web task definition with new image
+        id: render-web
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: web-task-def.json
+          container-name: web
+          image: ${{ secrets.DOCKER_USER }}/toptal-web:${{ github.sha }}
+
+      - name: Deploy web service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-web.outputs.task-definition }}
+          service: ${{ env.ECS_WEB_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Generate api task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "${API_TASK_FAMILY}" \
+            --query taskDefinition > api-task-def-full.json
+          jq '{
+            family: .family,
+            taskRoleArn: .taskRoleArn,
+            executionRoleArn: .executionRoleArn,
+            networkMode: .networkMode,
+            containerDefinitions: .containerDefinitions,
+            volumes: .volumes,
+            placementConstraints: .placementConstraints,
+            requiresCompatibilities: .requiresCompatibilities,
+            cpu: .cpu,
+            memory: .memory,
+            runtimePlatform: .runtimePlatform
+          } | with_entries(select(.value != null))' api-task-def-full.json > api-task-def.json
+
+      - name: Render api task definition with new image
+        id: render-api
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: api-task-def.json
+          container-name: api
+          image: ${{ secrets.DOCKER_USER }}/toptal-api:${{ github.sha }}
+
+      - name: Deploy api service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-api.outputs.task-definition }}
+          service: ${{ env.ECS_API_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true

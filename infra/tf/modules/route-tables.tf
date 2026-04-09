@@ -36,7 +36,8 @@ resource "aws_route_table" "private_rt_01" {
     "account"    = var.env
     "owner"      = "techops"
     "management" = "terraform"
-  "service" = "infra" }
+    "service"    = "infra"
+  }
 }
 
 resource "aws_route" "private_rt_01" {
@@ -46,7 +47,7 @@ resource "aws_route" "private_rt_01" {
 }
 
 resource "aws_route_table_association" "private_data_rt_as_01" {
-  count          = 3
+  count          = 1
   subnet_id      = element(aws_subnet.private_data_subs_01.*.id, count.index)
   route_table_id = aws_route_table.private_rt_01.id
 }
