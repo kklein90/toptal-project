@@ -20,6 +20,7 @@ resource "aws_db_instance" "rds" {
   maintenance_window              = "wed:05:05-wed:06:05"
   max_allocated_storage           = 2048
   multi_az                        = false
+  parameter_group_name            = aws_db_parameter_group.rds_non_tls.name
 
   port                   = 5432
   skip_final_snapshot    = true
@@ -28,6 +29,23 @@ resource "aws_db_instance" "rds" {
   username               = "postgres"
   password               = random_password.db_password.result
   vpc_security_group_ids = [aws_security_group.rds_sec_group.id]
+}
+
+resource "aws_db_parameter_group" "rds_non_tls" {
+  name   = "toptal-rds-non-tls"
+  family = "postgres17"
+
+  parameter {
+    name         = "rds.force_ssl"
+    value        = "0"
+    apply_method = "pending-reboot"
+  }
+
+  tags = {
+    management = "terraform"
+    account    = "nonprod"
+    owner      = "techops"
+  }
 }
 
 
