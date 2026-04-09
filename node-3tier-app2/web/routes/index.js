@@ -3,7 +3,11 @@ var router = express.Router();
 var request = require('request');
 
 
-var api_url = process.env.API_HOST + '/api/status';
+var api_host = process.env.API_HOST || 'api.toptal.internal';
+if (!/^https?:\/\//i.test(api_host)) {
+    api_host = 'http://' + api_host;
+}
+var api_url = api_host.replace(/\/$/, '') + '/api/status';
 
 router.get('/healthz', function(req, res) {
     res.status(200).send('ok');
