@@ -41,6 +41,8 @@ The project is accessible at (my personal domain):
 - http://api.kwkc.xyz
 - http://web.kwkc.xyz
 
+![diagram](./kklein-toptal-project-001.png)
+
 ### Terraform
 - VPC
   - internet gateway
