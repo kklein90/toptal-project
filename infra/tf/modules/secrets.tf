@@ -4,7 +4,7 @@ resource "random_password" "db_password" {
 }
 
 resource "aws_secretsmanager_secret" "rds_secret_1" {
-  name        = "/rds/cluster-a/secret1"
+  name        = "/rds/cluster-a/secret2"
   description = "cluster-a rds secret"
 
   tags = {
