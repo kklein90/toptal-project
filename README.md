@@ -1,4 +1,5 @@
-Task details
+# TopTal project
+## Task details
 You want to design a continuous delivery architecture for a scalable and secure 3-tier Node application.
 
 Application to use can be found at https://git.toptal.com/henrique/node-3tier-app2
@@ -31,17 +32,45 @@ All the relevant backup scripts.
 You can use another git provider to leverage hooks, CI/CD, or other features not enabled in Toptal's git. Everything else, including the code for the CI/CD pipeline, must be pushed to Toptal's git.
 
 
-## Terraform 
+## Solution
+### General
+I made slight modifications to the application code base:
+- added a health check endpoint (/healthz) to the web app
+### Access
+The project is accessible at (my personal domain):
+- http://api.kwkc.xyz
+- http://web.kwkc.xyz
+
+### Terraform
 - VPC
-- 3 subnets
+  - internet gateway
+  - nat gateway
+  - route tables
+- 4 subnets - 2 private for DB & 2 public for internet access
 - ECS cluster
-- Task Definitions
-- Cloudwatch logging
+  - 2 services - app & web
+  - Task Definitions - 1 each api & web
+- Cloudwatch log groups
+  - 1 each, api & web
 - ALB + target groups
+- WAF - regional & associated with the ALB
+  - WAF rules
+- IAM roles for launching and running ECS tasks
+- CloudMap service discovery
+  - private DNS zone - toptal.internal
+- multiple security groups 
+- SSM paramters (encrypted) for sensitive API environment variables
 - DB
   - backup
+- SecretsManager secrert for DB credentials
+- Cloudflare DNS records for public access
+- Cloudflare cache for CDN functionality
 
-domain: toptal.internal
-web - tcp:8081
-api - tcp:8082
+### CI/CD
+This is implemented in Github Workflows/Actions:
+- executes on Github hosted runners
+- includes basic smoke tests
+- includes required secrets to:
+  - credentials for Docker Hub for image storage & retrieval
+  - credentials for AWS to deploy ECS tasks
   
