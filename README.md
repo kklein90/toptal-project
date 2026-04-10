@@ -73,7 +73,7 @@ This is implemented in Github Workflows/Actions:
 - executes on Github hosted runners
 - has manual trigger as well as triggering on commits/push to main branch
 - includes basic smoke tests
-- includes required secrets to:
+- includes required secrets:
   - credentials for Docker Hub for image storage & retrieval
   - credentials for AWS to deploy ECS tasks
   
